@@ -19,11 +19,34 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
 	private var audioPlayer: AVAudioPlayer?
 	private var timer: AnyCancellable?
 	
+	func configureAudioSession() {
+		do {
+			let session = AVAudioSession.sharedInstance()
+			
+			// Configure for playback through external speakers/headphones
+			try session.setCategory(
+				.playback,
+				mode: .default,
+				options: [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay]
+			)
+			
+			// Activate the session
+			try session.setActive(true)
+			
+			// Prefer external speakers if available
+			try session.overrideOutputAudioPort(.none)
+		} catch {
+			print("Audio session configuration error: \(error.localizedDescription)")
+		}
+	}
+	
 	// MARK: - Playback Control
 	func loadAudio(from url: URL) {
 		do {
+			configureAudioSession()
 			// Stop any currently playing audio
 			stopPlayback()
+			
 			
 			// Initialize audio player with the file URL
 			audioPlayer = try AVAudioPlayer(contentsOf: url)
